@@ -1,5 +1,9 @@
+import os
 import requests
 import urllib.parse
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class APIManager:
     def __init__(self):
