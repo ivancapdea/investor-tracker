@@ -8,11 +8,10 @@ load_dotenv()
 class APIManager:
     def __init__(self):
         self.session = requests.Session()
-        # Dejamos que requests y el módulo brotli recién instalado 
-        # negocien la compresión automáticamente para evitar el 406.
         self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip, deflate"
         })
 
     def get_crypto_prices(self, coin_symbols):
