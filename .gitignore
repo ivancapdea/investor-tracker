@@ -4,6 +4,7 @@ GEMINI.md
 # Ignorar base de datos local y cachés
 inversiones.db
 __pycache__/
+*.pyc
 
 # Ignorar una carpeta entera y todo su contenido
 exclude/

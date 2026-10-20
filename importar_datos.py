@@ -100,7 +100,7 @@ def migrar_csv_a_sqlite():
             if coin in valid_tickers:
                 try:
                     qty = float(r[1].replace(',', '.')) if r[1].strip() else 0.0
-                    price_raw = r[2].replace('€', '').replace('$', '').strip()
+                    price_raw = r[3].replace('€', '').replace('$', '').strip()
                     price = float(price_raw.replace(',', '')) if price_raw else 0.0
                     
                     if qty > 0 and price > 0:
