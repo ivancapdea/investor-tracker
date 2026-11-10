@@ -1,13 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { Search, TrendingUp, TrendingDown, Coins } from 'lucide-react';
 import type { CryptoInvestment } from '../../types/investments';
-import { formatCurrency, formatPercentage, formatAmount } from '../../utils/formatters';
+import {
+  formatAmount,
+  formatMaskedCurrency,
+  formatMaskedPercentage,
+} from '../../utils/formatters';
 
 interface CryptoListProps {
   cryptos: CryptoInvestment[];
+  isAnonymized: boolean;
 }
 
-export const CryptoList: React.FC<CryptoListProps> = ({ cryptos }) => {
+export const CryptoList: React.FC<CryptoListProps> = ({ cryptos, isAnonymized }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredCryptos = useMemo(() => {
@@ -31,6 +36,8 @@ export const CryptoList: React.FC<CryptoListProps> = ({ cryptos }) => {
   const totalPnL = totalValue - totalInvested;
   const totalPnLPct = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
+  const maskClass = isAnonymized ? 'blur-xs select-none tracking-wider' : '';
+
   return (
     <div className="space-y-5">
       {/* Barra de cabecera con métricas y buscador */}
@@ -42,9 +49,19 @@ export const CryptoList: React.FC<CryptoListProps> = ({ cryptos }) => {
           <div>
             <h2 className="text-base font-bold text-zinc-100">Cartera Cripto</h2>
             <p className="text-xs text-zinc-400">
-              {cryptos.length} activos • Valor: {formatCurrency(totalValue)} • PnL:{' '}
-              <span className={totalPnL >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                {formatPercentage(totalPnLPct)} ({formatCurrency(totalPnL)})
+              {cryptos.length} activos • Valor:{' '}
+              <span className={`font-semibold text-zinc-200 ${maskClass}`}>
+                {formatMaskedCurrency(totalValue, isAnonymized)}
+              </span>{' '}
+              • PnL:{' '}
+              <span
+                className={`font-semibold ${maskClass} ${
+                  totalPnL >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {formatMaskedPercentage(totalPnLPct, isAnonymized)} (
+                {totalPnL >= 0 && !isAnonymized ? '+' : ''}
+                {formatMaskedCurrency(totalPnL, isAnonymized)})
               </span>
             </p>
           </div>
@@ -70,7 +87,7 @@ export const CryptoList: React.FC<CryptoListProps> = ({ cryptos }) => {
             <tr>
               <th className="py-3 px-4">Activo</th>
               <th className="py-3 px-4 text-right">Cantidad</th>
-              <th className="py-3 px-4 text-right">P. Compra (USD)</th>
+              <th className="py-3 px-4 text-right">P. Compra (USD/EUR)</th>
               <th className="py-3 px-4 text-right">P. Actual (USD/EUR)</th>
               <th className="py-3 px-4 text-right">Inversión (€)</th>
               <th className="py-3 px-4 text-right">Valor Actual (€)</th>
@@ -114,34 +131,38 @@ export const CryptoList: React.FC<CryptoListProps> = ({ cryptos }) => {
 
                     {/* Precio de Compra */}
                     <td className="py-3.5 px-4 text-right font-mono text-zinc-300">
-                      <div>{formatCurrency(item.buy_price, 'USD')}</div>
-                      <div className="text-[10px] text-zinc-500">
-                        {formatCurrency(item.buy_price_eur, 'EUR')}
+                      <div className={maskClass}>
+                        {formatMaskedCurrency(item.buy_price, isAnonymized, 'USD')}
+                      </div>
+                      <div className={`text-[10px] text-zinc-500 ${maskClass}`}>
+                        {formatMaskedCurrency(item.buy_price_eur, isAnonymized, 'EUR')}
                       </div>
                     </td>
 
                     {/* Precio Actual */}
                     <td className="py-3.5 px-4 text-right font-mono text-zinc-200">
-                      <div>{formatCurrency(item.current_price_usd, 'USD')}</div>
-                      <div className="text-[10px] text-zinc-400">
-                        {formatCurrency(item.current_price_eur, 'EUR')}
+                      <div className={maskClass}>
+                        {formatMaskedCurrency(item.current_price_usd, isAnonymized, 'USD')}
+                      </div>
+                      <div className={`text-[10px] text-zinc-400 ${maskClass}`}>
+                        {formatMaskedCurrency(item.current_price_eur, isAnonymized, 'EUR')}
                       </div>
                     </td>
 
                     {/* Inversión Total (€) */}
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-300">
-                      {formatCurrency(item.total_invested_eur, 'EUR')}
+                    <td className={`py-3.5 px-4 text-right font-mono text-zinc-300 ${maskClass}`}>
+                      {formatMaskedCurrency(item.total_invested_eur, isAnonymized, 'EUR')}
                     </td>
 
                     {/* Valor Actual (€) */}
-                    <td className="py-3.5 px-4 text-right font-mono font-semibold text-zinc-100">
-                      {formatCurrency(item.total_value_eur, 'EUR')}
+                    <td className={`py-3.5 px-4 text-right font-mono font-semibold text-zinc-100 ${maskClass}`}>
+                      {formatMaskedCurrency(item.total_value_eur, isAnonymized, 'EUR')}
                     </td>
 
                     {/* Rentabilidad (€ y %) */}
                     <td className="py-3.5 px-4 text-right font-sans">
                       <div
-                        className={`inline-flex items-center gap-1 font-semibold text-xs ${
+                        className={`inline-flex items-center gap-1 font-semibold text-xs ${maskClass} ${
                           isPositive ? 'text-emerald-400' : 'text-rose-400'
                         }`}
                       >
@@ -150,15 +171,15 @@ export const CryptoList: React.FC<CryptoListProps> = ({ cryptos }) => {
                         ) : (
                           <TrendingDown className="w-3.5 h-3.5" />
                         )}
-                        <span>{formatPercentage(item.pnl_percentage)}</span>
+                        <span>{formatMaskedPercentage(item.pnl_percentage, isAnonymized)}</span>
                       </div>
                       <div
-                        className={`text-[11px] font-mono ${
+                        className={`text-[11px] font-mono ${maskClass} ${
                           isPositive ? 'text-emerald-500/80' : 'text-rose-500/80'
                         }`}
                       >
-                        {isPositive ? '+' : ''}
-                        {formatCurrency(item.pnl_eur, 'EUR')}
+                        {isPositive && !isAnonymized ? '+' : ''}
+                        {formatMaskedCurrency(item.pnl_eur, isAnonymized, 'EUR')}
                       </div>
                     </td>
                   </tr>

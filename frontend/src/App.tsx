@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { TabSelector } from './components/TabSelector';
 import { LoadingState } from './components/LoadingState';
 import { ErrorState } from './components/ErrorState';
+import { AddInvestmentModal } from './components/AddInvestmentModal';
 import { PortfolioOverview } from './features/portfolio/PortfolioOverview';
 import { CryptoList } from './features/assets/CryptoList';
 import { SkinsList } from './features/assets/SkinsList';
@@ -22,6 +23,31 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [data, setData] = useState<InversionesResponse | null>(null);
+
+  // Estado del Modal de Nueva Inversión
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+
+  // Estado del Modo Privacidad / Anonimización (persistido en localStorage)
+  const [isAnonymized, setIsAnonymized] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('investor_app_anonymized');
+      return saved === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleAnonymized = useCallback(() => {
+    setIsAnonymized((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('investor_app_anonymized', String(next));
+      } catch {
+        // En caso de modo incógnito restrictivo o cookies bloqueadas
+      }
+      return next;
+    });
+  }, []);
 
   // Carga inicial al montar el componente con soporte para cleanup y prevención de race conditions
   useEffect(() => {
@@ -69,7 +95,7 @@ function App() {
     };
   }, []);
 
-  // Función de refresco manual triggered por el usuario
+  // Función de refresco (manual o tras alta de inversión)
   const handleRefresh = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -149,12 +175,15 @@ function App() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Header Superior */}
+      {/* Header Superior con control de privacidad y botón de alta */}
       <Header
         serverStatus={serverStatus}
         isLoading={isLoading}
         onRefresh={handleRefresh}
         lastUpdated={lastUpdated}
+        isAnonymized={isAnonymized}
+        onToggleAnonymized={handleToggleAnonymized}
+        onOpenAddModal={() => setIsAddModalOpen(true)}
       />
 
       {/* Contenido Principal */}
@@ -208,19 +237,33 @@ function App() {
                 cryptos={data.cryptos}
                 skins={data.skins}
                 onSelectTab={(tab) => setActiveTab(tab)}
+                isAnonymized={isAnonymized}
               />
             )}
 
             {activeTab === 'crypto' && (
-              <CryptoList cryptos={data.cryptos} />
+              <CryptoList
+                cryptos={data.cryptos}
+                isAnonymized={isAnonymized}
+              />
             )}
 
             {activeTab === 'skins' && (
-              <SkinsList skins={data.skins} />
+              <SkinsList
+                skins={data.skins}
+                isAnonymized={isAnonymized}
+              />
             )}
           </>
         )}
       </main>
+
+      {/* Modal para Crear Nueva Inversión */}
+      <AddInvestmentModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={handleRefresh}
+      />
 
       {/* Footer Minimalista */}
       <footer className="border-t border-zinc-800/80 bg-zinc-950/60 py-6 text-center text-xs text-zinc-500">

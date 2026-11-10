@@ -1,5 +1,13 @@
 import React from 'react';
-import { RefreshCw, TrendingUp, ShieldCheck, AlertCircle } from 'lucide-react';
+import {
+  RefreshCw,
+  TrendingUp,
+  ShieldCheck,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Plus,
+} from 'lucide-react';
 import type { ServerStatus } from '../types/investments';
 
 interface HeaderProps {
@@ -7,6 +15,9 @@ interface HeaderProps {
   isLoading: boolean;
   onRefresh: () => void;
   lastUpdated: Date | null;
+  isAnonymized: boolean;
+  onToggleAnonymized: () => void;
+  onOpenAddModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -14,6 +25,9 @@ export const Header: React.FC<HeaderProps> = ({
   isLoading,
   onRefresh,
   lastUpdated,
+  isAnonymized,
+  onToggleAnonymized,
+  onOpenAddModal,
 }) => {
   return (
     <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-900/90 backdrop-blur-md">
@@ -40,12 +54,54 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Estado del Backend FastAPI y Botón de Refresco */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          {/* Acciones del Header */}
+          <div className="flex items-center gap-2 sm:gap-3">
             
+            {/* Botón de Modo Privacidad (Anonimización de datos) */}
+            <button
+              onClick={onToggleAnonymized}
+              aria-label={
+                isAnonymized
+                  ? 'Desactivar modo privacidad (mostrar cifras)'
+                  : 'Activar modo privacidad (ocultar cifras)'
+              }
+              title={
+                isAnonymized
+                  ? 'Modo Privacidad ACTIVO: Haz clic para mostrar importes'
+                  : 'Modo Privacidad INACTIVO: Haz clic para ocultar importes'
+              }
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border transition-all cursor-pointer ${
+                isAnonymized
+                  ? 'bg-amber-950/50 border-amber-800/80 text-amber-300 shadow-sm shadow-amber-950/50'
+                  : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700/80 hover:border-zinc-600'
+              }`}
+            >
+              {isAnonymized ? (
+                <>
+                  <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                  <span className="hidden md:inline">Privacidad</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400" />
+                  <span className="hidden md:inline">Ocultar</span>
+                </>
+              )}
+            </button>
+
+            {/* Botón Destacado: "+ Nueva Inversión" */}
+            <button
+              onClick={onOpenAddModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white border border-emerald-500/40 shadow-sm shadow-emerald-950/60 transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+              <span className="hidden sm:inline">Nueva Inversión</span>
+              <span className="sm:hidden">Nueva</span>
+            </button>
+
             {/* Indicador de Estado del Servidor FastAPI */}
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                 serverStatus === 'online'
                   ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300'
                   : serverStatus === 'checking'
@@ -78,15 +134,10 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </span>
 
-              <span className="hidden sm:inline">
+              <span>
                 {serverStatus === 'online' && 'FastAPI Online'}
                 {serverStatus === 'checking' && 'Conectando...'}
                 {serverStatus === 'offline' && 'FastAPI Offline'}
-              </span>
-              <span className="sm:hidden">
-                {serverStatus === 'online' && 'Online'}
-                {serverStatus === 'checking' && '...'}
-                {serverStatus === 'offline' && 'Offline'}
               </span>
 
               {serverStatus === 'online' && <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />}
@@ -95,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Hora de última actualización */}
             {lastUpdated && (
-              <span className="hidden lg:block text-xs text-zinc-500">
+              <span className="hidden xl:block text-xs text-zinc-500">
                 {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </span>
             )}
@@ -105,12 +156,13 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onRefresh}
               disabled={isLoading}
               aria-label="Refrescar cotizaciones e inversiones"
-              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-800/80 text-zinc-200 border border-zinc-700/80 hover:border-zinc-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              title="Refrescar cotizaciones e inversiones"
+              className="inline-flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-800/80 text-zinc-200 border border-zinc-700/80 hover:border-zinc-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-300 ${isLoading ? 'animate-spin text-emerald-400' : ''}`}
               />
-              <span className="hidden sm:inline">
+              <span className="hidden lg:inline">
                 {isLoading ? 'Actualizando...' : 'Refrescar'}
               </span>
             </button>

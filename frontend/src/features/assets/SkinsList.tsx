@@ -1,13 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { Search, TrendingUp, TrendingDown, Crosshair, ShieldAlert } from 'lucide-react';
 import type { SkinInvestment } from '../../types/investments';
-import { formatCurrency, formatPercentage } from '../../utils/formatters';
+import {
+  formatCurrency,
+  formatMaskedCurrency,
+  formatMaskedPercentage,
+} from '../../utils/formatters';
 
 interface SkinsListProps {
   skins: SkinInvestment[];
+  isAnonymized: boolean;
 }
 
-export const SkinsList: React.FC<SkinsListProps> = ({ skins }) => {
+export const SkinsList: React.FC<SkinsListProps> = ({ skins, isAnonymized }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredSkins = useMemo(() => {
@@ -31,6 +36,8 @@ export const SkinsList: React.FC<SkinsListProps> = ({ skins }) => {
   const totalPnL = totalValue - totalInvested;
   const totalPnLPct = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
+  const maskClass = isAnonymized ? 'blur-xs select-none tracking-wider' : '';
+
   return (
     <div className="space-y-5">
       {/* Barra de cabecera con métricas y buscador */}
@@ -42,10 +49,23 @@ export const SkinsList: React.FC<SkinsListProps> = ({ skins }) => {
           <div>
             <h2 className="text-base font-bold text-zinc-100">Cartera Counter-Strike Skins</h2>
             <p className="text-xs text-zinc-400">
-              {skins.length} items • Inversión: {formatCurrency(totalInvested)} • Valor Real:{' '}
-              <span className="font-semibold text-zinc-200">{formatCurrency(totalValue)}</span> • PnL:{' '}
-              <span className={totalPnL >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                {formatPercentage(totalPnLPct)} ({formatCurrency(totalPnL)})
+              {skins.length} items • Inversión:{' '}
+              <span className={`font-semibold text-zinc-200 ${maskClass}`}>
+                {formatMaskedCurrency(totalInvested, isAnonymized)}
+              </span>{' '}
+              • Valor Real:{' '}
+              <span className={`font-semibold text-zinc-200 ${maskClass}`}>
+                {formatMaskedCurrency(totalValue, isAnonymized)}
+              </span>{' '}
+              • PnL:{' '}
+              <span
+                className={`font-semibold ${maskClass} ${
+                  totalPnL >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {formatMaskedPercentage(totalPnLPct, isAnonymized)} (
+                {totalPnL >= 0 && !isAnonymized ? '+' : ''}
+                {formatMaskedCurrency(totalPnL, isAnonymized)})
               </span>
             </p>
           </div>
@@ -126,13 +146,15 @@ export const SkinsList: React.FC<SkinsListProps> = ({ skins }) => {
                     </td>
 
                     {/* Precio de Compra (€) */}
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-300">
-                      {formatCurrency(item.buy_price_eur, 'EUR')}
+                    <td className={`py-3.5 px-4 text-right font-mono text-zinc-300 ${maskClass}`}>
+                      {formatMaskedCurrency(item.buy_price_eur, isAnonymized, 'EUR')}
                     </td>
 
                     {/* Precio Skinport (Real) */}
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-200">
-                      {item.price_real_eur > 0 ? (
+                    <td className={`py-3.5 px-4 text-right font-mono text-zinc-200 ${maskClass}`}>
+                      {isAnonymized ? (
+                        formatMaskedCurrency(item.price_real_eur, true, 'EUR')
+                      ) : item.price_real_eur > 0 ? (
                         formatCurrency(item.price_real_eur, 'EUR')
                       ) : (
                         <span className="text-zinc-500 italic text-xs">Sin oferta</span>
@@ -140,8 +162,10 @@ export const SkinsList: React.FC<SkinsListProps> = ({ skins }) => {
                     </td>
 
                     {/* Precio Steam */}
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-400">
-                      {item.price_steam_eur > 0 ? (
+                    <td className={`py-3.5 px-4 text-right font-mono text-zinc-400 ${maskClass}`}>
+                      {isAnonymized ? (
+                        formatMaskedCurrency(item.price_steam_eur, true, 'EUR')
+                      ) : item.price_steam_eur > 0 ? (
                         formatCurrency(item.price_steam_eur, 'EUR')
                       ) : (
                         <span className="text-zinc-600">—</span>
@@ -149,19 +173,19 @@ export const SkinsList: React.FC<SkinsListProps> = ({ skins }) => {
                     </td>
 
                     {/* Inversión Total (€) */}
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-300">
-                      {formatCurrency(item.total_invested_eur, 'EUR')}
+                    <td className={`py-3.5 px-4 text-right font-mono text-zinc-300 ${maskClass}`}>
+                      {formatMaskedCurrency(item.total_invested_eur, isAnonymized, 'EUR')}
                     </td>
 
                     {/* Valor Total Actual (€) */}
-                    <td className="py-3.5 px-4 text-right font-mono font-semibold text-zinc-100">
-                      {formatCurrency(item.total_value_eur, 'EUR')}
+                    <td className={`py-3.5 px-4 text-right font-mono font-semibold text-zinc-100 ${maskClass}`}>
+                      {formatMaskedCurrency(item.total_value_eur, isAnonymized, 'EUR')}
                     </td>
 
                     {/* Rentabilidad */}
                     <td className="py-3.5 px-4 text-right font-sans">
                       <div
-                        className={`inline-flex items-center gap-1 font-semibold text-xs ${
+                        className={`inline-flex items-center gap-1 font-semibold text-xs ${maskClass} ${
                           isPositive ? 'text-emerald-400' : 'text-rose-400'
                         }`}
                       >
@@ -170,15 +194,15 @@ export const SkinsList: React.FC<SkinsListProps> = ({ skins }) => {
                         ) : (
                           <TrendingDown className="w-3.5 h-3.5" />
                         )}
-                        <span>{formatPercentage(item.pnl_percentage)}</span>
+                        <span>{formatMaskedPercentage(item.pnl_percentage, isAnonymized)}</span>
                       </div>
                       <div
-                        className={`text-[11px] font-mono ${
+                        className={`text-[11px] font-mono ${maskClass} ${
                           isPositive ? 'text-emerald-500/80' : 'text-rose-500/80'
                         }`}
                       >
-                        {isPositive ? '+' : ''}
-                        {formatCurrency(item.pnl_eur, 'EUR')}
+                        {isPositive && !isAnonymized ? '+' : ''}
+                        {formatMaskedCurrency(item.pnl_eur, isAnonymized, 'EUR')}
                       </div>
                     </td>
                   </tr>

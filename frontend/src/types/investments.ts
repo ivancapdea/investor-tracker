@@ -59,3 +59,28 @@ export interface PortfolioSummary {
 export type TabId = 'overview' | 'crypto' | 'skins';
 
 export type ServerStatus = 'checking' | 'online' | 'offline';
+
+export interface NuevaCryptoPayload {
+  tipo: 'crypto';
+  coin_id: string;
+  symbol: string;
+  amount: number;
+  buy_price: number; // En USD para el backend
+}
+
+export interface NuevaSkinPayload {
+  tipo: 'skin';
+  market_hash_name: string;
+  wear?: string | null;
+  float_value?: number | null;
+  amount: number;
+  buy_price: number; // En EUR para el backend
+}
+
+export type NuevaInversionPayload = NuevaCryptoPayload | NuevaSkinPayload;
+
+export interface NuevaInversionResponse {
+  message: string;
+  id: number;
+  tipo: 'crypto' | 'skin';
+}

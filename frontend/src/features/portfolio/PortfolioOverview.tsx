@@ -9,13 +9,17 @@ import {
   Percent,
 } from 'lucide-react';
 import type { CryptoInvestment, SkinInvestment, PortfolioSummary } from '../../types/investments';
-import { formatCurrency, formatPercentage } from '../../utils/formatters';
+import {
+  formatMaskedCurrency,
+  formatMaskedPercentage,
+} from '../../utils/formatters';
 
 interface PortfolioOverviewProps {
   summary: PortfolioSummary;
   cryptos: CryptoInvestment[];
   skins: SkinInvestment[];
   onSelectTab: (tab: 'crypto' | 'skins') => void;
+  isAnonymized: boolean;
 }
 
 export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
@@ -23,6 +27,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
   cryptos,
   skins,
   onSelectTab,
+  isAnonymized,
 }) => {
   const isPositivePnL = summary.total_pnl_eur >= 0;
   const cryptoPositive = summary.crypto.pnl_eur >= 0;
@@ -50,6 +55,8 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
   const topGainer = sortedByPnL.length > 0 ? sortedByPnL[0] : null;
   const topLoser = sortedByPnL.length > 0 ? sortedByPnL[sortedByPnL.length - 1] : null;
 
+  const maskClass = isAnonymized ? 'blur-xs select-none tracking-wider' : '';
+
   return (
     <div className="space-y-6 sm:space-y-8">
       
@@ -64,8 +71,8 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
               <Wallet className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">
-            {formatCurrency(summary.total_value_eur)}
+          <div className={`text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight ${maskClass}`}>
+            {formatMaskedCurrency(summary.total_value_eur, isAnonymized)}
           </div>
           <div className="mt-2 text-xs text-zinc-400 flex items-center gap-1.5">
             <span>Suma de valor mercado actual</span>
@@ -80,8 +87,8 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
               <PiggyBank className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">
-            {formatCurrency(summary.total_invested_eur)}
+          <div className={`text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight ${maskClass}`}>
+            {formatMaskedCurrency(summary.total_invested_eur, isAnonymized)}
           </div>
           <div className="mt-2 text-xs text-zinc-400">
             Coste histórico de adquisición
@@ -107,12 +114,12 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
             </div>
           </div>
           <div
-            className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+            className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${maskClass} ${
               isPositivePnL ? 'text-emerald-400' : 'text-rose-400'
             }`}
           >
-            {isPositivePnL ? '+' : ''}
-            {formatCurrency(summary.total_pnl_eur)}
+            {isPositivePnL && !isAnonymized ? '+' : ''}
+            {formatMaskedCurrency(summary.total_pnl_eur, isAnonymized)}
           </div>
           <div className="mt-2 text-xs text-zinc-400">
             Diferencia neta sobre inversión
@@ -134,11 +141,11 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
             </div>
           </div>
           <div
-            className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+            className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${maskClass} ${
               isPositivePnL ? 'text-emerald-400' : 'text-rose-400'
             }`}
           >
-            {formatPercentage(summary.total_pnl_percentage)}
+            {formatMaskedPercentage(summary.total_pnl_percentage, isAnonymized)}
           </div>
           <div className="mt-2 text-xs text-zinc-400">
             Rentabilidad ponderada global
@@ -177,35 +184,35 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
           <div className="grid grid-cols-2 gap-4 pt-3 border-t border-zinc-800/80">
             <div>
               <span className="text-xs text-zinc-400 block">Valor Actual</span>
-              <span className="text-lg font-bold text-zinc-100">
-                {formatCurrency(summary.crypto.total_value_eur)}
+              <span className={`text-lg font-bold text-zinc-100 ${maskClass}`}>
+                {formatMaskedCurrency(summary.crypto.total_value_eur, isAnonymized)}
               </span>
             </div>
             <div>
               <span className="text-xs text-zinc-400 block">Inversión</span>
-              <span className="text-lg font-bold text-zinc-100">
-                {formatCurrency(summary.crypto.total_invested_eur)}
+              <span className={`text-lg font-bold text-zinc-100 ${maskClass}`}>
+                {formatMaskedCurrency(summary.crypto.total_invested_eur, isAnonymized)}
               </span>
             </div>
             <div>
               <span className="text-xs text-zinc-400 block">PnL (€)</span>
               <span
-                className={`text-sm font-semibold ${
+                className={`text-sm font-semibold ${maskClass} ${
                   cryptoPositive ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               >
-                {cryptoPositive ? '+' : ''}
-                {formatCurrency(summary.crypto.pnl_eur)}
+                {cryptoPositive && !isAnonymized ? '+' : ''}
+                {formatMaskedCurrency(summary.crypto.pnl_eur, isAnonymized)}
               </span>
             </div>
             <div>
               <span className="text-xs text-zinc-400 block">Rentabilidad</span>
               <span
-                className={`text-sm font-semibold ${
+                className={`text-sm font-semibold ${maskClass} ${
                   cryptoPositive ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               >
-                {formatPercentage(summary.crypto.pnl_percentage)}
+                {formatMaskedPercentage(summary.crypto.pnl_percentage, isAnonymized)}
               </span>
             </div>
           </div>
@@ -238,35 +245,35 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
           <div className="grid grid-cols-2 gap-4 pt-3 border-t border-zinc-800/80">
             <div>
               <span className="text-xs text-zinc-400 block">Valor Actual (Skinport)</span>
-              <span className="text-lg font-bold text-zinc-100">
-                {formatCurrency(summary.skins.total_value_eur)}
+              <span className={`text-lg font-bold text-zinc-100 ${maskClass}`}>
+                {formatMaskedCurrency(summary.skins.total_value_eur, isAnonymized)}
               </span>
             </div>
             <div>
               <span className="text-xs text-zinc-400 block">Inversión</span>
-              <span className="text-lg font-bold text-zinc-100">
-                {formatCurrency(summary.skins.total_invested_eur)}
+              <span className={`text-lg font-bold text-zinc-100 ${maskClass}`}>
+                {formatMaskedCurrency(summary.skins.total_invested_eur, isAnonymized)}
               </span>
             </div>
             <div>
               <span className="text-xs text-zinc-400 block">PnL (€)</span>
               <span
-                className={`text-sm font-semibold ${
+                className={`text-sm font-semibold ${maskClass} ${
                   skinsPositive ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               >
-                {skinsPositive ? '+' : ''}
-                {formatCurrency(summary.skins.pnl_eur)}
+                {skinsPositive && !isAnonymized ? '+' : ''}
+                {formatMaskedCurrency(summary.skins.pnl_eur, isAnonymized)}
               </span>
             </div>
             <div>
               <span className="text-xs text-zinc-400 block">Rentabilidad</span>
               <span
-                className={`text-sm font-semibold ${
+                className={`text-sm font-semibold ${maskClass} ${
                   skinsPositive ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               >
-                {formatPercentage(summary.skins.pnl_percentage)}
+                {formatMaskedPercentage(summary.skins.pnl_percentage, isAnonymized)}
               </span>
             </div>
           </div>
@@ -280,8 +287,8 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
           <span className="font-semibold text-zinc-300 uppercase tracking-wider">
             Distribución de Capital por Categoría
           </span>
-          <span className="text-zinc-400">
-            Total: {formatCurrency(summary.total_value_eur)}
+          <span className={`text-zinc-400 ${maskClass}`}>
+            Total: {formatMaskedCurrency(summary.total_value_eur, isAnonymized)}
           </span>
         </div>
 
@@ -301,11 +308,23 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         <div className="flex items-center justify-between mt-3 text-xs text-zinc-400">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
-            <span>Cripto: {summary.crypto.allocation_percentage.toFixed(1)}% ({formatCurrency(summary.crypto.total_value_eur)})</span>
+            <span>
+              Cripto: {summary.crypto.allocation_percentage.toFixed(1)}% (
+              <span className={maskClass}>
+                {formatMaskedCurrency(summary.crypto.total_value_eur, isAnonymized)}
+              </span>
+              )
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block" />
-            <span>CS Skins: {summary.skins.allocation_percentage.toFixed(1)}% ({formatCurrency(summary.skins.total_value_eur)})</span>
+            <span>
+              CS Skins: {summary.skins.allocation_percentage.toFixed(1)}% (
+              <span className={maskClass}>
+                {formatMaskedCurrency(summary.skins.total_value_eur, isAnonymized)}
+              </span>
+              )
+            </span>
           </div>
         </div>
       </div>
@@ -323,15 +342,19 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                   {topGainer.name}
                 </span>
                 <span className="text-xs text-zinc-500 block">
-                  {topGainer.type} • Valor: {formatCurrency(topGainer.value)}
+                  {topGainer.type} • Valor:{' '}
+                  <span className={maskClass}>
+                    {formatMaskedCurrency(topGainer.value, isAnonymized)}
+                  </span>
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-sm font-bold text-emerald-400">
-                  {formatPercentage(topGainer.pnlPct)}
+                <span className={`text-sm font-bold text-emerald-400 ${maskClass}`}>
+                  {formatMaskedPercentage(topGainer.pnlPct, isAnonymized)}
                 </span>
-                <span className="text-xs text-emerald-500/80 block">
-                  +{formatCurrency(topGainer.pnlEur)}
+                <span className={`text-xs text-emerald-500/80 block ${maskClass}`}>
+                  {!isAnonymized && '+'}
+                  {formatMaskedCurrency(topGainer.pnlEur, isAnonymized)}
                 </span>
               </div>
             </div>
@@ -347,15 +370,18 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                   {topLoser.name}
                 </span>
                 <span className="text-xs text-zinc-500 block">
-                  {topLoser.type} • Valor: {formatCurrency(topLoser.value)}
+                  {topLoser.type} • Valor:{' '}
+                  <span className={maskClass}>
+                    {formatMaskedCurrency(topLoser.value, isAnonymized)}
+                  </span>
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-sm font-bold text-rose-400">
-                  {formatPercentage(topLoser.pnlPct)}
+                <span className={`text-sm font-bold text-rose-400 ${maskClass}`}>
+                  {formatMaskedPercentage(topLoser.pnlPct, isAnonymized)}
                 </span>
-                <span className="text-xs text-rose-500/80 block">
-                  {formatCurrency(topLoser.pnlEur)}
+                <span className={`text-xs text-rose-500/80 block ${maskClass}`}>
+                  {formatMaskedCurrency(topLoser.pnlEur, isAnonymized)}
                 </span>
               </div>
             </div>

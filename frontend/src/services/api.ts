@@ -1,5 +1,9 @@
 import axios from 'axios';
-import type { InversionesResponse } from '../types/investments';
+import type {
+  InversionesResponse,
+  NuevaInversionPayload,
+  NuevaInversionResponse,
+} from '../types/investments';
 
 export const API_BASE_URL = 'http://127.0.0.1:8000';
 
@@ -16,6 +20,19 @@ export const apiClient = axios.create({
  */
 export async function getInversiones(): Promise<InversionesResponse> {
   const response = await apiClient.get<InversionesResponse>('/api/inversiones');
+  return response.data;
+}
+
+/**
+ * Registra una nueva inversión en el backend FastAPI.
+ */
+export async function createInversion(
+  payload: NuevaInversionPayload
+): Promise<NuevaInversionResponse> {
+  const response = await apiClient.post<NuevaInversionResponse>(
+    '/api/inversiones',
+    payload
+  );
   return response.data;
 }
 

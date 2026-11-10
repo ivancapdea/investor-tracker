@@ -14,8 +14,26 @@ export function formatCurrency(
     style: 'currency',
     currency,
     minimumFractionDigits,
-    maximumFractionDigits: minimumFractionDigits < 4 && Math.abs(value) < 1 && value !== 0 ? 4 : minimumFractionDigits,
+    maximumFractionDigits:
+      minimumFractionDigits < 4 && Math.abs(value) < 1 && value !== 0
+        ? 4
+        : minimumFractionDigits,
   }).format(value);
+}
+
+/**
+ * Retorna el valor formateado como divisa o una máscara si el modo anonimizado está activo.
+ */
+export function formatMaskedCurrency(
+  value: number | null | undefined,
+  isAnonymized: boolean,
+  currency: 'EUR' | 'USD' = 'EUR',
+  minimumFractionDigits = 2
+): string {
+  if (isAnonymized) {
+    return currency === 'EUR' ? '•••• €' : '$ ••••';
+  }
+  return formatCurrency(value, currency, minimumFractionDigits);
 }
 
 /**
@@ -30,9 +48,25 @@ export function formatPercentage(value: number | null | undefined): string {
 }
 
 /**
+ * Retorna el porcentaje formateado o una máscara si el modo anonimizado está activo.
+ */
+export function formatMaskedPercentage(
+  value: number | null | undefined,
+  isAnonymized: boolean
+): string {
+  if (isAnonymized) {
+    return '•••• %';
+  }
+  return formatPercentage(value);
+}
+
+/**
  * Formatea una cantidad de activos (cripto o skins) respetando decimales significativos.
  */
-export function formatAmount(value: number | null | undefined, maxDecimals = 8): string {
+export function formatAmount(
+  value: number | null | undefined,
+  maxDecimals = 8
+): string {
   if (value === null || value === undefined || isNaN(value)) {
     return '0';
   }
